@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Check Your Grade</title>
+
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: url('bg.jpg') no-repeat center center fixed;
+    background-size: cover;
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 50%, rgba(52, 152, 219, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(46, 125, 50, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .container {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(52, 152, 219, 0.2);
+    text-align: center;
+    width: 100%;
+    max-width: 420px;
+    animation: fadeIn 0.8s ease-in-out;
+    border-top: 5px solid #3498db;
+    position: relative;
+    margin: 10px;
+    box-sizing: border-box;
+  }
+
+  .logo-circle {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+
+  .logo-img {
+    max-width: 50px;
+    height: 50px;
+    display: block;
+    animation: slideDown 0.6s ease-in-out;
+    object-fit: contain;
+  }
+
+  h1 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: clamp(24px, 5vw, 32px);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  h2 {
+    color: #34495e;
+    font-size: clamp(14px, 4vw, 16px);
+    margin-bottom: 20px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    outline: none;
+    transition: 0.3s;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+
+  input:focus {
+    border-color: #4facfe;
+    box-shadow: 0 0 8px rgba(79,172,254,0.4);
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+    box-sizing: border-box;
+  }
+
+  button:hover {
+    background: linear-gradient(135deg, #2980b9, #1f618d);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+  }
+
+  #result {
+    margin-top: 20px;
+  }
+
+  .error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+  }
+
+  table {
+    width: 100%;
+    margin-top: 15px;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-size: clamp(12px, 3vw, 14px);
+  }
+
+  th {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    padding: clamp(8px, 2vw, 12px);
+    font-weight: 600;
+    text-align: left;
+  }
+
+  td {
+    padding: clamp(8px, 2vw, 12px);
+    border: 1px solid #ecf0f1;
+    color: #2c3e50;
+  }
+
+  tr:nth-child(even) {
+    background: #f9f9f9;
+  }
+
+  .timer {
+    background: #fff3cd;
+    color: #856404;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    font-size: clamp(20px, 8vw, 32px);
+    display: none;
+  }
+
+  .timer.active {
+    display: block;
+  }
+
+  .timer.expiring {
+    background: #f8d7da;
+    color: #721c24;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-15px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Mobile Responsiveness */
+  @media (max-width: 768px) {
+    body {
+      height: auto;
+      min-height: 100vh;
+      padding: 10px;
+    }
+
+    .container {
+      padding: 30px 20px;
+      margin: 10px auto;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    input {
+      padding: 14px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 16px;
+      font-size: 16px;
+      min-height: 50px;
+    }
+
+    #clearSessionBtn {
+      margin-top: 10px !important;
+    }
+
+    table {
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 10px;
+    }
+
+    .error {
+      padding: 12px;
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    body {
+      padding: 5px;
+    }
+
+    .container {
+      padding: 20px 15px;
+      margin: 5px;
+      border-radius: 15px;
+    }
+
+    .container::before {
+      width: 50px;
+      height: 50px;
+      top: -15px;
+      font-size: 24px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+
+    input {
+      padding: 12px;
+      margin-bottom: 12px;
+      font-size: 16px;
+      border-radius: 6px;
+    }
+
+    button {
+      padding: 14px;
+      font-size: 15px;
+      min-height: 48px;
+      margin-bottom: 8px;
+      border-radius: 6px;
+    }
+
+    #clearSessionBtn {
+      margin-top: 8px !important;
+      margin-bottom: 0 !important;
+    }
+
+    #result {
+      margin-top: 15px;
+    }
+
+    table {
+      font-size: 12px;
+      margin-top: 12px;
+    }
+
+    th, td {
+      padding: 8px 6px;
+    }
+
+    .timer {
+      font-size: 24px;
+      margin-bottom: 12px;
+      padding: 8px;
+    }
+
+    .error {
+      padding: 10px;
+      font-size: 13px;
+    }
+
+    /* Stack table columns vertically on very small screens */
+    table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+  }
+
+  /* Ultra-small devices */
+  @media (max-width: 320px) {
+    .container {
+      padding: 15px 10px;
+    }
+
+    h1 {
+      font-size: 20px;
+    }
+
+    h2 {
+      font-size: 12px;
+    }
+
+    input, button {
+      font-size: 14px;
+      padding: 10px;
+    }
+
+    table {
+      font-size: 11px;
+    }
+
+    th, td {
+      padding: 6px 4px;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="logo-circle">
+    <img src="college_1761362380.png" alt="College Logo" class="logo-img">
+  </div>
+  <h1>Check Your Grade</h1>
+  <h2>Enter your Student ID</h2>
+  <div id="timerDisplay" class="timer"></div>
+
+  <input type="text" id="studentId" placeholder="Student ID">
+  <button onclick="checkGrade()" style="margin-bottom: 10px;">Check Grade</button>
+  <button id="clearSessionBtn" onclick="clearSession()" style="background: #e74c3c; color: white; display: none; margin-top: 10px; box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);">Clear Session</button>
+
+  <div id="result"></div>
+</div>
+
+<script>
+const data = {    
+  "02828": { name: "ERIBAREN", midterm: 3.0, final: 2.9     
+  },
+  "02296": { name: "SOBERANO", midterm: 3.0, final: 2.7
+  },
+  "06704": { name: "ARRIOLA", midterm: 1.5, final: 1.8
+  },
+  "01153": { name: "ESTORES", midterm: 1.5, final: 1.5
+  },
+  "01200": { name: "MANFREDO", midterm: 1.7, final: 1.9
+  },
+  "06459": { name: "CUNANAN", midterm: 1.6, final: 1.9
+  },
+  "04650": { name: "VILRIA", midterm: 1.7, final: 1.8
+  },
+  "01963": { name: "FILIPINAS", midterm: 3.2, final: 2.6
+  },
+  "04778": { name: "ALAMO", midterm: 1.8, final: 1.9
+  },
+  "02387": { name: "FALLER", midterm: 2.1, final: 2.1
+  },
+  "01393": { name: "NAMOL", midterm: 2.6, final: 2.1
+  },
+  "01531": { name: "DAPAT", midterm: 1.8, final: 1.9
+  },
+  "00529": { name: "CAJELO", midterm: 2.8, final: 2.5
+  },
+  "00523": { name: "CARO", midterm: 2.0, final: 2.0
+  },
+  "03095": { name: "DISTOR", midterm: 3.1, final: 2.6
+  },
+  "03631": { name: "TALATALA", midterm: 2.1, final: 2.3
+  },
+  "00643": { name: "AGARRADO", midterm: 1.8, final: 1.9
+  },
+  "02940": { name: "LAGUMBAY", midterm: 2.8, final: 2.4
+  },
+  "00500": { name: "ABATAYO", midterm: 1.5, final: 2.1
+  },
+  "05465": { name: "CASTOR", midterm: 2.9, final: 3.0
+  },
+  "02736": { name: "OÑEZ",  midterm: 1.2, final: 1.6
+  },
+  "02868": { name: "NAVARRO", midterm: 3.2, final: 2.7
+  },
+  "03007": { name: "CORDOVA", midterm: 3.3, final: 2.7
+  },
+  "00331": { name: "ADELAN", midterm: 2.1, final: 2.1
+  },
+  "01066": { name: "GARLEJO", midterm: 2.0, final: 2.0
+  },
+  "05131": { name: "BELARMINO", midterm: 3.0, final: 2.8
+  },
+  "06143": { name: "AMPARADO", midterm: 2.7, final: 2.3
+  },
+  "06458": { name: "VALDEZ", midterm: 2.8, final: 2.4
+  },
+  "05580": { name: "CABALO", midterm: 2.6, final: 2.3
+  },
+  "00361": { name: "YNOT K.", midterm: 1.7, final: 2.5
+  },
+  "02770": { name: "YNOT J.", midterm: 2.0, final: 2.7
+  },
+  "00289": { name: "BARETOS", midterm: 1.8, final: 1.9
+  },
+  "05139": { name: "PRUDENTE", midterm: 1.5, final: 1.7
+  },
+  "00292": { name: "BASUL", midterm: 2.2, final: 2.1
+  },
+  "00005": { name: "LIBO-ON", midterm: 2.6, final: 2.8
+  },
+  "00813": { name: "CABULAO", midterm: 1.9, final: 2.1
+  },
+  "00771": { name: "MONTERO", midterm: 1.5, final: 1.6
+  },
+  "01025": { name: "BURLASA", midterm: 1.6, final: 1.5
+  },
+  "06048": { name: "SALIDATU", midterm: 2.5, final: 2.2
+  },
+  "05248": { name: "DOLIGOSA", midterm: 2.4, final: 1.9
+  },
+  "00579": { name: "MIJARES", midterm: 3.2, final: 2.8
+  },
+  "02602": { name: "DESALES", midterm: 2.6, final: 2.2
+  },
+  "05883": { name: "FABELLORE",  midterm: 2.5, final: 1.8
+  },
+  "05848": { name: "ESPEÑOLA", midterm: 1.5, final: 1.7
+  },
+  "00906": { name: "ORPILLA", midterm: 2.7, final: 2.3
+  },
+  "00135": { name: "LANTANG", midterm: 2.5, final: 2.1
+  },
+  "06624": { name: "DAGAMAC", midterm: 1.2, final: 1.5
+  },
+  "00024": { name: "DEL PRADO", midterm: 2.6, final: 2.1
+  },
+  "00026": { name: "ALINSANGAO", midterm: 2.6, final: 2.2
+  },
+  "04939": { name: "SAUSA", midterm: 2.8, final: 2.4
+  },
+  "01859": { name: "NIAR", midterm: 2.9, final: 2.5
+  },
+  "02190": { name: "TRILLES", midterm: 3.3, final: 2.7
+  },
+  "02287": { name: "SORIL", midterm: 2.6, final: 2.1
+  },
+  "00287": { name: "BATIANCILA", midterm: 1.5, final: 1.6
+  },
+  "02300": { name: "DELLUMOS", midterm: 2.4, final: 2.2
+  },
+  "00353": { name: "GELI", midterm: 2.2, final: 2.1
+  },
+  "02997": { name: "LANGRIO", midterm: 2.3, final: 2.2
+  },
+  "04392": { name: "BALUNGAY", midterm: 2.7, final: 2.5
+  },
+  "00133": { name: "ESTRELLA", midterm: 2.7, final: 2.1
+  },
+  "05426": { name: "LEOPA", midterm: 3.4, final: 2.8
+  },
+  "00723": { name: "DAYADAY", midterm: 3.0, final: 2.8
+  },
+  "01517": { name: "LONGNO", midterm: 2.7, final: 2.3
+  },
+  "03670": { name: "GRAMATICA", midterm: 1.7, final: 1.8
+  },
+  "00511": { name: "BELGIRA", midterm: 2.1, final: 2.3
+  },
+  "02756": { name: "CONSTANTINO", midterm: 1.6, final: 1.8
+  },
+  "01060": { name: "CATALANDO", midterm: 1.6, final: 1.8
+  },
+  "04579": { name: "GENER", midterm: 1.7, final: 1.6
+  },
+  "02408": { name: "CANLAS", midterm: 2.1, final: 1.7
+  },
+  "01734": { name: "PARCON", midterm: 1.6, final: 2.1
+  },
+  "03098": { name: "FABULARE", midterm: 1.8, final: 2.0
+  },
+  "05235": { name: "MAGLASANG", midterm: 2.0, final: 2.2
+  },
+  "05280": { name: "CALDERON", midterm: 1.4, final: 1.9
+  },
+  "00801": { name: "MODEQUILLO", midterm: 1.7, final: 1.8
+  },
+  "02407": { name: "LADARAN", midterm: 2.1, final: 2.1
+  },
+  "00173": { name: "DEL CARMEN", midterm: 2.2, final: 2.3
+  },
+  "04582": { name: "CABELLON", midterm: 1.5, final: 1.9
+  },
+  "03868": { name: "CAMACHO", midterm: 2.2, final: 2.9
+  },
+  "02579": { name: "VALIENTE", midterm: 1.8, final: 2.3
+  },
+  "03452": { name: "BELOTENDOS", midterm: 2.1, final: 2.7
+  },
+  "01674": { name: "RICALDE", midterm: 1.8, final: 1.7
+  },
+  "00428": { name: "ARENDAIN", midterm: 3.0, final: 2.8
+  },
+  "05903": { name: "VILLANUEVA", midterm: 2.7, final: 2.8
+  },
+  "00537": { name: "GONZALES", midterm: 1.9, final: 2.4
+  },
+  "01931": { name: "FERNANDEZ", midterm: 1.7, final: 1.5
+  },
+  "01485": { name: "BERNARDO", midterm: 3.0, final: 2.7
+  },
+  "00222": { name: "GAERLAN", midterm: 1.4, final: 1.6
+  },
+  "06080": { name: "VILLAGONZALO", midterm: 2.4, final: 2.5
+  },
+  "04715": { name: "TUMUGBONG", midterm: 2.2, final: 2.0
+  },
+  "05934": { name: "UNGGANG", midterm: 1.9, final: 2.3
+  },
+  "03679": { name: "GUIASILON", midterm: 1.9, final: 2.4
+  },
+  "00727": { name: "RANOCO", midterm: 1.5, final: 1.5
+  },
+  "01739": { name: "HEGUERA", midterm: 1.8, final: 2.6
+  },
+  "01761": { name: "LANCHETA", midterm: 1.6, final: 2.0
+  },
+  "05593": { name: "RECATO", midterm: 1.7, final: 1.7
+  },
+  "02200": { name: "DAWA", midterm: 1.8, final: 2.6
+  },
+  "01592": { name: "BILLONES", midterm: 3.5, final: 5.0
+  },
+  "03454": { name: "MANGELIN", midterm: 2.5, final: 2.2
+  },
+  "04933": { name: "NANLABI", midterm: 2.0, final: 2.1
+  },
+  "02198": { name: "AGULLANA", midterm: 1.7, final: 1.9
+  },
+  "01852": { name: "AMBOD", midterm: 2.5, final: 2.8
+  },
+  "02291": { name: "MIGUEL", midterm: 1.6, final: 1.4
+  },
+  "01663": { name: "GUIRIGAY", midterm: 1.6, final: 1.5
+  },
+   "01234": { name: "sample", midterm: 1.0, final: 1.0
+  }
+};
+
+let expirationDate;
+let timerStarted = false;
+
+function initializeTimer() {
+  const storedExpiration = localStorage.getItem("gradeExpirationDate");
+  
+  if (storedExpiration) {
+
+    expirationDate = new Date(parseInt(storedExpiration));
+  } else {
+
+    const pageLoadTime = new Date();
+    expirationDate = new Date(pageLoadTime.getTime() + 5 * 60000);
+    localStorage.setItem("gradeExpirationDate", expirationDate.getTime());
+  }
+  
+  const timerDisplay = document.getElementById("timerDisplay");
+  timerDisplay.classList.add("active");
+  
+  // Show clear session button
+  const clearButton = document.getElementById("clearSessionBtn");
+  clearButton.style.display = "block";
+  
+  if (!timerStarted) {
+    timerStarted = true;
+    updateTimer();
+    setInterval(updateTimer, 1000);
+  }
+}
+
+function isAccessBlocked() {
+  const blockTimestamp = localStorage.getItem("gradeAccessBlockedTime");
+  
+  if (!blockTimestamp) {
+    return false;
+  }
+  
+  const blockedTime = new Date(parseInt(blockTimestamp));
+  const currentTime = new Date();
+  const hoursElapsed = (currentTime - blockedTime) / (1000 * 60 * 60);
+  
+  // If less than 48 hours have passed, access is still blocked
+  if (hoursElapsed < 48) {
+    return true;
+  }
+  
+  // 48 hours have passed, remove the block
+  localStorage.removeItem("gradeAccessBlockedTime");
+  return false;
+}
+
+function getBlockedTimeRemaining() {
+  const blockTimestamp = localStorage.getItem("gradeAccessBlockedTime");
+  
+  if (!blockTimestamp) {
+    return null;
+  }
+  
+  const blockedTime = new Date(parseInt(blockTimestamp));
+  const unblockTime = new Date(blockedTime.getTime() + 48 * 60 * 60 * 1000);
+  const currentTime = new Date();
+  const hoursRemaining = Math.ceil((unblockTime - currentTime) / (1000 * 60 * 60));
+  
+  return Math.max(0, hoursRemaining);
+}
+
+function updateTimer() {
+  const now = new Date();
+  const timerDisplay = document.getElementById("timerDisplay");
+  const timeRemaining = expirationDate - now;
+  
+  if (timeRemaining <= 0) {
+    timerDisplay.innerHTML = "0:00";
+    timerDisplay.classList.add("expiring");
+    
+    // Set the 48-hour block timestamp
+    localStorage.setItem("gradeAccessBlockedTime", new Date().getTime());
+    
+    // Session expired - clear everything
+    const resultBox = document.getElementById("result");
+    resultBox.innerHTML = `<div class="error">Grade access has expired. You cannot view your grades for the next 48 hours.</div>`;
+    
+    // Hide clear session button
+    const clearButton = document.getElementById("clearSessionBtn");
+    clearButton.style.display = "none";
+    
+    // Clear stored data after 3 seconds and reset page
+    setTimeout(() => {
+      localStorage.removeItem("studentId");
+      localStorage.removeItem("gradeExpirationDate");
+      document.getElementById("studentId").value = "";
+      resultBox.innerHTML = "";
+      timerDisplay.classList.remove("active");
+      timerDisplay.innerHTML = "";
+      timerStarted = false;
+    }, 3000);
+    
+    return;
+  }
+  
+  const minutes = Math.floor(timeRemaining / 60000);
+  const seconds = Math.floor((timeRemaining % 60000) / 1000);
+  const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  
+  timerDisplay.innerHTML = formattedTime;
+  
+  if (timeRemaining < 60000) {
+    timerDisplay.classList.add("expiring");
+  }
+}
+
+function checkGrade() {
+  const id = document.getElementById("studentId").value.trim();
+  const resultBox = document.getElementById("result");
+
+  if (id === "") {
+    resultBox.innerHTML = `<div class="error">Please enter your Student ID.</div>`;
+    return;
+  }
+
+  // Check if access is currently blocked due to previous timeout
+  if (isAccessBlocked()) {
+    const hoursRemaining = getBlockedTimeRemaining();
+    resultBox.innerHTML = `<div class="error">Access Denied. Your account is locked. You cannot view your grades for <strong>${hoursRemaining} hours</strong>. Please try again after 48 hours.</div>`;
+    document.getElementById("studentId").value = "";
+    return;
+  }
+
+  // Store the ID in localStorage for session persistence
+  localStorage.setItem("studentId", id);
+
+  // Initialize timer on first check
+  if (!timerStarted) {
+    initializeTimer();
+  }
+
+  const now = new Date();
+
+  if (now > expirationDate) {
+    resultBox.innerHTML = `<div class="error">Grade access has expired.</div>`;
+    return;
+  }
+
+  const student = data[id];
+
+  if (student) {
+    resultBox.innerHTML = `
+      <table>
+        <tr>
+          <th>Name</th>
+          <th>Total Quizess</th>
+          <th>Midterm</th>
+          <th>Final</th>
+        </tr>
+        <tr>
+          <td>${student.name}</td>
+          <td>${student.totalQuiz}</td>
+          <td>${student.midterm}</td>
+          <td>${student.final}</td>
+        </tr>
+      </table>
+    `;
+  } else {
+    resultBox.innerHTML = `<div class="error">Invalid ID please try again</div>`;
+  }
+}
+
+function clearSession() {
+  localStorage.removeItem("studentId");
+  localStorage.removeItem("gradeExpirationDate");
+  document.getElementById("studentId").value = "";
+  document.getElementById("result").innerHTML = "";
+  document.getElementById("timerDisplay").classList.remove("active");
+  document.getElementById("timerDisplay").innerHTML = "";
+  document.getElementById("clearSessionBtn").style.display = "none";
+  timerStarted = false;
+}
+
+</script>
+
+<script>
+// On page load, restore session if user was logged in
+window.addEventListener('load', function() {
+  const storedId = localStorage.getItem("studentId");
+  
+  // Check if user is currently blocked from accessing grades
+  if (isAccessBlocked()) {
+    const hoursRemaining = getBlockedTimeRemaining();
+    const resultBox = document.getElementById("result");
+    resultBox.innerHTML = `<div class="error">Access Denied. Your account is locked due to previous session timeout. You cannot view your grades for <strong>${hoursRemaining} hours</strong>. Please try again later.</div>`;
+    document.getElementById("studentId").value = "";
+    return;
+  }
+  
+  if (storedId) {
+    document.getElementById("studentId").value = storedId;
+    document.getElementById("clearSessionBtn").style.display = "block";
+    checkGrade();
+  }
+});
+</script>
+
+</body>
+</html>
